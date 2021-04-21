@@ -21,6 +21,8 @@ def plot_save_grid(output, img_size=32, size=8, save=False):
     Plot 8x8 grid to visualize results from the output of the model
     """
     # Process output
+    if output.is_cuda:
+        output = output.cpu()
     output = output.detach()
     output = output.view(-1, 1, img_size, img_size)
     output = output.numpy().transpose((0, 2, 3, 1))
