@@ -15,6 +15,7 @@ import torch
 import torchvision
 
 from torch.utils.data import DataLoader
+from early_stopping_pytorch.pytorchtools import EarlyStopping
 
 from architectures import *
 from data_preprocessing import mnist_transforms
@@ -28,9 +29,14 @@ def sinkhorn_loss(fake, real, parameters, device, critic):
     :param real: a batch of real samples (n_samples x d)
     :return: the Sinkhorn loss between the two batches
     """
-    fake_real = sinkhorn_divergence(fake, real, 'euclidean', parameters, device, critic)
-    real_real = sinkhorn_divergence(real, real, 'euclidean', parameters, device, critic)
-    fake_fake = sinkhorn_divergence(fake, fake, 'euclidean', parameters, device, critic)
+    if parameters.distance == 'default':
+        distance = 'euclidean'
+    else:
+        distance = parameters.distance
+
+    fake_real = sinkhorn_divergence(fake, real, distance, parameters, device, critic)
+    real_real = sinkhorn_divergence(real, real, distance, parameters, device, critic)
+    fake_fake = sinkhorn_divergence(fake, fake, distance, parameters, device, critic)
 
     loss = 2 * fake_real - real_real - fake_fake
 
@@ -39,8 +45,10 @@ def sinkhorn_loss(fake, real, parameters, device, critic):
 
 def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c, parameters, device):
 
-    generator_losses = []
-    critic_losses = []
+    losses = []
+
+    # Initialize Early Stopping callback
+    early_stopping = EarlyStopping(patience=parameters.patience, verbose=True)
 
     generator.to(device)
     if critic is not None:
@@ -48,8 +56,7 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
 
     for epoch in range(parameters.n_epochs):
 
-        epoch_generator_loss = 0
-        epoch_critic_loss = 0
+        epoch_loss = 0
 
         for batch_id, (real_data, _) in enumerate(data_loader):
 
@@ -66,7 +73,7 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
                 # Compute Sinkhorn loss
                 critic_loss = - sinkhorn_loss(fake_data, real_data, parameters, device, critic)
                 critic_loss.backward()
-                epoch_critic_loss += critic_loss.item()
+                epoch_loss += critic_loss.item()
 
                 # Take an optimization step
                 nn.utils.clip_grad_norm_(critic.parameters(), parameters.clipping_value)  # Clip gradient norm
@@ -79,29 +86,34 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
                 # Compute Sinkhorn loss
                 generator_loss = sinkhorn_loss(fake_data, real_data, parameters, device, critic)
                 generator_loss.backward()
-                epoch_generator_loss += generator_loss.item()
+                epoch_loss += generator_loss.item()
 
                 # Take an optimization step
                 optimizer_g.step()
 
         # Compute and store epoch losses
-        epoch_generator_loss /= len(data_loader.dataset)
-        epoch_critic_loss /= len(data_loader.dataset)
-        generator_losses.append(epoch_generator_loss)
-        critic_losses.append(epoch_critic_loss)
+        epoch_loss /= len(data_loader.dataset)
+        losses.append(epoch_loss)
         if parameters.display:
             print(
-                "[Epoch %d/%d] [Generator loss: %f] [Critic loss: %f]" % (epoch + 1, parameters.n_epochs,
-                                                                                float(epoch_generator_loss),
-                                                                                float(epoch_critic_loss))
+                "[Epoch %d/%d] [Loss: %f]" % (epoch + 1, parameters.n_epochs, float(epoch_loss))
             )
+
+        # Early stopping if validation loss increases
+        early_stopping(epoch_loss, generator)
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
+
+    # load the last checkpoint with the best model
+    generator.load_state_dict(torch.load('checkpoint.pt'))
 
     # Save models
     torch.save(generator.state_dict(), os.path.join(parameters.output_path, 'sinkhorn_gan_generator.pth'))
     if critic is not None:
         torch.save(critic.state_dict(), os.path.join(parameters.output_path, 'sinkhorn_gan_critic.pth'))
 
-    return generator, critic, generator_losses, critic_losses
+    return generator, critic, losses
 
 
 if __name__ == '__main__':

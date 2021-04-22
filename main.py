@@ -18,31 +18,36 @@ from architectures import *
 from models.sinkhorn_gan import *
 from models.ot_gan import *
 from simulated_data import GaussianToy
+from utils import plot_save_grid
 
 parser = argparse.ArgumentParser()
 
 # General parameters
-parser.add_argument("--model", type=str, default="ot_gan", help="model to use (sinkhorn gan or ot_gan)")
-parser.add_argument("--architecture", type=str, default="conv", help="architecture to use (simple or conv)")
-parser.add_argument("--use_critic", type=bool, default=True, help="True if a learnable critic is used")
+parser.add_argument("--model", type=str, default="sinkhorn_gan", help="model to use (sinkhorn gan or ot_gan)")
+parser.add_argument("--architecture", type=str, default="simple", help="architecture to use (simple or conv)")
+parser.add_argument("--use_critic", type=bool, default=False, help="True if a learnable critic is used")
 parser.add_argument("--trained_generator", type=str, default='', help="path to trained generator")
 parser.add_argument("--trained_critic", type=str, default='', help="path to trained critic")
 parser.add_argument("--seed", type=int, default=0, help="seed")
 parser.add_argument("--display", type=bool, default=True, help="true to display training results")
 parser.add_argument("--output_path", type=str, default='models/saved_models', help="path where the trained models"
                                                                                         "will be saved")
-parser.add_argument("--dataset", type=str, default='mnist', help="dataset to use (mnist or gaussian)")
+parser.add_argument("--dataset", type=str, default='mnist', help="dataset to use (mnist, cifar or gaussian)")
+parser.add_argument("--patience", type=int, default=5, help="patience for early stopping")
 
 # Network parameters
 
 # Model parameters
 parser.add_argument("--entropy_regularization", type=float, default=1, help="entropy regularization parameter")
 parser.add_argument("--sinkhorn_iterations", type=int, default=10, help="number of Sinkhorn iterations")
-parser.add_argument("--latent_dim", type=int, default=50, help="dimension of the latent space")
+parser.add_argument("--latent_dim", type=int, default=2, help="dimension of the latent space")
+parser.add_argument("--latent_space", type=str, default='uniform', help="type of latent space (uniform or gaussian)")
 parser.add_argument("--data_dim", type=int, help="dimension of the data (flattened)")
+parser.add_argument("--distance", type=str, default='cosine', help="distance to use for the critic "
+                                                                    "(default, cosine or euclidean)")
 
 # Training parameters
-parser.add_argument("--n_epochs", type=int, default=15, help="number of training epochs")
+parser.add_argument("--n_epochs", type=int, default=100, help="number of training epochs")
 parser.add_argument("--batch_size", type=int, default=200, help="batch size")
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate")
 parser.add_argument("--beta_1", type=float, default=0.5, help="1st beta coefficient for Adam optimizer")
@@ -82,7 +87,7 @@ def main(params, device):
     data_loader = None
     actual_batch_size = 2 * params.batch_size if params.model == 'ot_gan' else params.batch_size
     if params.dataset == 'mnist':
-        mnist = torchvision.datasets.MNIST('./data', train=True, transform=mnist_transforms, download=True)
+        mnist = torchvision.datasets.MNIST('./data', train=True, transform=mnist_transforms)
         data_loader = DataLoader(mnist, batch_size=actual_batch_size, shuffle=True)
         params.data_dim = 1024
     elif params.dataset == 'gaussian':
@@ -90,13 +95,17 @@ def main(params, device):
         toy_dataset = gaussian_toy.build()
         data_loader = DataLoader(toy_dataset, batch_size=actual_batch_size, shuffle=True)
         params.data_dim = 2
+    elif params.dataset == 'cifar':
+        cifar = torchvision.datasets.CIFAR10('./data', train=True, transform=mnist_transforms, download=True)
+        data_loader = DataLoader(cifar, batch_size=actual_batch_size, shuffle=True)
+        params.data_dim = 1024
 
     # Instantiate model
     generator, critic = None, None
     if params.architecture == 'conv':
-        generator = ConvGenerator(params.latent_dim)
+        generator = ConvGenerator(params.latent_dim, mode=params.dataset)
         if params.use_critic:
-            critic = ConvCritic()
+            critic = ConvCritic(mode=params.dataset)
     elif params.architecture == 'simple':
         generator = Generator(input_dim=params.latent_dim, output_dim=params.data_dim)
         if params.use_critic:
