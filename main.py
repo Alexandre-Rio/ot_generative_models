@@ -4,8 +4,6 @@ Created on Mon Apr 19 14:41:00 2021
 @author: alexandre-rio
 """
 
-from models.sinkhorn_gan import *
-
 import os
 import torch
 from torch.utils.data import DataLoader
@@ -26,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, default="sinkhorn_gan", help="model to use (sinkhorn gan or ot_gan)")
 parser.add_argument("--architecture", type=str, default="simple", help="architecture to use (simple or conv)")
 parser.add_argument("--use_critic", type=bool, default=False, help="True if a learnable critic is used")
-parser.add_argument("--trained_generator", type=str, default='', help="path to trained generator")
+parser.add_argument("--trained_generator", type=str, default='./models/saved_models/sinkhorn_gan_generator_100_epochs_mnist.pth', help="path to trained generator")
 parser.add_argument("--trained_critic", type=str, default='', help="path to trained critic")
 parser.add_argument("--seed", type=int, default=0, help="seed")
 parser.add_argument("--display", type=bool, default=True, help="true to display training results")
@@ -36,6 +34,8 @@ parser.add_argument("--dataset", type=str, default='mnist', help="dataset to use
 parser.add_argument("--patience", type=int, default=5, help="patience for early stopping")
 
 # Network parameters
+parser.add_argument("--hidden_dim", type=int, default=500, help="number of nodes in the MLPs hidden layer")
+parser.add_argument("--critic_out_dim", type=int, default=1, help="dimension of the MLP critic out features")
 
 # Model parameters
 parser.add_argument("--entropy_regularization", type=float, default=1, help="entropy regularization parameter")
@@ -47,14 +47,14 @@ parser.add_argument("--distance", type=str, default='cosine', help="distance to 
                                                                     "(default, cosine or euclidean)")
 
 # Training parameters
-parser.add_argument("--n_epochs", type=int, default=100, help="number of training epochs")
+parser.add_argument("--n_epochs", type=int, default=200, help="number of training epochs")
 parser.add_argument("--batch_size", type=int, default=200, help="batch size")
 parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate")
 parser.add_argument("--beta_1", type=float, default=0.5, help="1st beta coefficient for Adam optimizer")
 parser.add_argument("--beta_2", type=float, default=0.999, help="2nd beta coefficient for Adam optimizer")
-parser.add_argument("--critic_steps", type=float, default=5, help="number of critic optimization steps")
-parser.add_argument("--generator_steps", type=float, default=5, help="number of generator optimization steps")
-parser.add_argument("--clipping_value", type=float, default=5, help="clipping value for the critic gradient")
+parser.add_argument("--critic_steps", type=float, default=3, help="number of critic optimization steps")
+parser.add_argument("--generator_steps", type=float, default=3, help="number of generator optimization steps")
+parser.add_argument("--clipping_value", type=float, default=3, help="clipping value for the critic gradient")
 
 # Build parser
 params = parser.parse_args()
@@ -107,9 +107,9 @@ def main(params, device):
         if params.use_critic:
             critic = ConvCritic(mode=params.dataset)
     elif params.architecture == 'simple':
-        generator = Generator(input_dim=params.latent_dim, output_dim=params.data_dim)
+        generator = Generator(input_dim=params.latent_dim, hidden_dim=params.hidden_dim, output_dim=params.data_dim)
         if params.use_critic:
-            critic = Critic(input_dim=params.data_dim)
+            critic = Critic(input_dim=params.data_dim, hidden_dim=params.hidden_dim, output_dim=params.critic_out_dim)
 
     # Load model if stated
     if params.trained_generator != '':

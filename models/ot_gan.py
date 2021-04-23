@@ -69,8 +69,12 @@ def train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, param
             x, x_prime = torch.split(real_data, parameters.batch_size)
 
             # Generate two independent samples of fake data from sampled random noise
-            z = 2 * torch.rand(parameters.batch_size, parameters.latent_dim) - 1
-            z_prime = 2 * torch.rand(parameters.batch_size, parameters.latent_dim) - 1
+            if parameters.latent_space == 'gaussian':
+                z = torch.randn(parameters.batch_size, parameters.latent_dim)
+                z_prime = torch.randn(parameters.batch_size, parameters.latent_dim)
+            else:
+                z = 2 * torch.rand(parameters.batch_size, parameters.latent_dim) - 1
+                z_prime = 2 * torch.rand(parameters.batch_size, parameters.latent_dim) - 1
             z, z_prime = z.to(device), z_prime.to(device)
             y, y_prime = generator(z), generator(z_prime)
 

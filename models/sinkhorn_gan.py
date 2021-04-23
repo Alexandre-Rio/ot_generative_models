@@ -63,7 +63,10 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
             real_data = real_data.to(device)
 
             # Generate fake data from sampled random noise
-            z = torch.rand(parameters.batch_size, parameters.latent_dim).to(device)
+            if parameters.latent_space == 'gaussian':
+                z = torch.randn(parameters.batch_size, parameters.latent_dim).to(device)
+            else:
+                z = torch.rand(parameters.batch_size, parameters.latent_dim).to(device)
             fake_data = generator(z)
 
             if batch_id % (parameters.critic_steps + 1) != 0:

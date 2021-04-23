@@ -14,11 +14,11 @@ cd = np.sqrt(2) / 2
 
 class GaussianToy:
 
-    def __init__(self, samples_per_mode=10000):
+    def __init__(self, samples_per_mode=25000):
 
         self.samples_per_mode = samples_per_mode
-        self.centers = np.array([[0, 1], [1, 0], [-1, 0], [0, -1], [cd, cd], [-cd, -cd], [-cd, cd], [cd, -cd]])
-        self.std = 0.05
+        self.centers = 2 * np.array([[0, 1], [1, 0], [-1, 0], [0, -1], [cd, cd], [-cd, -cd], [-cd, cd], [cd, -cd]])
+        self.std = 0.02
         self.data = np.zeros((len(self.centers) * self.samples_per_mode, 2))
         self.labels = np.zeros(len(self.centers) * self.samples_per_mode)
         self.dataset = None
