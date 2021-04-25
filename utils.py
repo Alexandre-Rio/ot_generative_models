@@ -15,7 +15,7 @@ import numpy as np
 
 # PLOTS
 
-def plot_grid(data, img_size=28, size=8, save=False):
+def plot_grid(data, img_size=28, size=8):
     """
     Plot an image grid (size x size) to visualize the data
     """
@@ -24,7 +24,8 @@ def plot_grid(data, img_size=28, size=8, save=False):
         data = data.cpu()
     data = data.detach()
     data = data.view(-1, 1, img_size, img_size)
-    #data = data.numpy().transpose((0, 2, 3, 1))
+    if data.shape[1] == 1:
+        data = data.squeeze(dim=1)
     data = np.clip(data, 0, 1)
     # Plot figures
     fig = plt.figure(figsize=(size, size))
@@ -34,8 +35,6 @@ def plot_grid(data, img_size=28, size=8, save=False):
         ax = fig.add_subplot(gridspec[idx])
         ax.imshow(data[idx], cmap='gray')
         ax.set_axis_off()
-    if save:
-        fig.savefig('images/digits_mnist.png')
 
 
 def generate_plot_grid(generator, parameters, img_size=32, size=8, save=False):
