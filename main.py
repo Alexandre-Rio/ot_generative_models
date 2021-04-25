@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # Plot loss
     loss = training_results[2]
     plt.title("Training loss")
-    plt.plot(np.arange(params.n_epochs), np.array(loss))
+    plt.plot(np.arange(len(training_results)) + 1, np.array(loss))
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.show()
