@@ -88,7 +88,7 @@ def main(params, device):
     data_loader = None
     actual_batch_size = 2 * params.batch_size if params.model == 'ot_gan' else params.batch_size
     if params.dataset == 'mnist':
-        mnist = torchvision.datasets.MNIST('./data', train=True, transform=mnist_transforms)
+        mnist = torchvision.datasets.MNIST('./data', train=True, transform=mnist_transforms, download=True)
         data_loader = DataLoader(mnist, batch_size=actual_batch_size, shuffle=True)
         params.data_dim = 1024
     elif params.dataset == 'gaussian':
