@@ -24,7 +24,7 @@ def plot_grid(data, img_size=28, size=8, save=False):
         data = data.cpu()
     data = data.detach()
     data = data.view(-1, 1, img_size, img_size)
-    data = data.numpy().transpose((0, 2, 3, 1))
+    #data = data.numpy().transpose((0, 2, 3, 1))
     data = np.clip(data, 0, 1)
     # Plot figures
     fig = plt.figure(figsize=(size, size))
