@@ -28,7 +28,7 @@ def plot_grid(data, img_size=32, size=8):
     data = np.clip(data, 0, 1)
     # Plot figures
     fig = plt.figure(figsize=(size, size))
-    fig.suptitle("Generated digits")
+    fig.suptitle("MNIST digits")
     gridspec = fig.add_gridspec(size, size)
     for idx in range(size ** 2):
         ax = fig.add_subplot(gridspec[idx])
