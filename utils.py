@@ -15,7 +15,7 @@ import numpy as np
 
 # PLOTS
 
-def plot_grid(data, img_size=28, size=8):
+def plot_grid(data, img_size=32, size=8):
     """
     Plot an image grid (size x size) to visualize the data
     """
@@ -23,7 +23,6 @@ def plot_grid(data, img_size=28, size=8):
     if data.is_cuda:
         data = data.cpu()
     data = data.detach()
-    data = data.view(-1, 1, img_size, img_size)
     if data.shape[1] == 1:
         data = data.squeeze(dim=1)
     data = np.clip(data, 0, 1)
