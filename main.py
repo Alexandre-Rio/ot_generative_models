@@ -32,6 +32,7 @@ parser.add_argument("--output_path", type=str, default='models/saved_models', he
                                                                                         "will be saved")
 parser.add_argument("--dataset", type=str, default='mnist', help="dataset to use (mnist, cifar or gaussian)")
 parser.add_argument("--patience", type=int, default=5, help="patience for early stopping")
+parser.add_argument("--checkpoints", type=int, nargs='*', help="epochs at which to make a checkpoint")
 
 # Network parameters
 parser.add_argument("--hidden_dim", type=int, default=500, help="number of nodes in the MLPs hidden layer")

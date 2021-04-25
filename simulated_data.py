@@ -36,12 +36,3 @@ class GaussianToy:
 
         return self.dataset
 
-if __name__ == '__main__':
-
-    gaussian_toy = GaussianToy()
-    toy_dataset = gaussian_toy.build()
-
-    plt.scatter(toy_dataset[:, 0], toy_dataset[:, 1])
-    plt.show()
-
-    end=True

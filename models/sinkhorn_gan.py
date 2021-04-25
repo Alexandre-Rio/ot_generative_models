@@ -108,6 +108,10 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
             print("Early stopping")
             break
 
+        if epoch in parameters.checkpoints:
+            torch.save(generator.state_dict(), os.path.join(parameters.output_path,
+                                                            'sinkhorn_gan_generator_cp' + str(epoch) + 'epochs.pth'))
+
     # load the last checkpoint with the best model
     generator.load_state_dict(torch.load('checkpoint.pt'))
 
@@ -117,52 +121,3 @@ def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c,
         torch.save(critic.state_dict(), os.path.join(parameters.output_path, 'sinkhorn_gan_critic.pth'))
 
     return generator, critic, losses
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    # General parameters
-    parser.add_argument("--seed", type=int, default=0, help="seed")
-    parser.add_argument("--display", type=bool, default=True, help="true to display training results")
-    parser.add_argument("--output_path", type=str, default='saved_models', help="path where the trained models"
-                                                                                       "will be saved")
-
-    # Network parameters
-
-    # Model parameters
-    parser.add_argument("--entropy_regularization", type=float, default=1, help="entropy regularization parameter")
-    parser.add_argument("--sinkhorn_iterations", type=int, default=10, help="number of Sinkhorn iterations")
-    parser.add_argument("--latent_dim", type=int, default=2, help="dimension of the latent space")
-
-    # Training parameters
-    parser.add_argument("--n_epochs", type=int, default=100, help="number of training epochs")
-    parser.add_argument("--batch_size", type=int, default=200, help="batch size")
-    parser.add_argument("--learning_rate", type=float, default=1e-5, help="learning rate")
-    parser.add_argument("--critic_steps", type=float, default=5, help="number of critic optimization steps")
-    parser.add_argument("--clipping_value", type=float, default=5, help="clipping value for the critic gradient")
-
-    # Build parser
-    params = parser.parse_args()
-
-    # Create data loader
-    mnist = torchvision.datasets.MNIST(os.path.join(os.path.dirname(os.getcwd()), 'data'), train=True,
-                                       transform=mnist_transforms)
-    data_loader = DataLoader(mnist, batch_size=params.batch_size, shuffle=True)
-
-    # Instantiate model and optimizer
-    generator = Generator(params.latent_dim)
-    generator.load_state_dict(torch.load('./saved_models/sinkhorn_gan_generator_100_epochs.pth'))
-    critic = None
-    optimizer_g = torch.optim.Adam(generator.parameters(), lr=params.learning_rate)
-    optimizer_c = None
-    if critic is not None:
-        optimizer_c = torch.optim.Adam(critic.parameters(), lr=params.learning_rate)
-    else:
-        params.critic_steps = 0
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Train model
-    training_results = train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c, params, device)
-
-    end = True

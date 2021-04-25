@@ -116,6 +116,10 @@ def train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, param
             print("Early stopping")
             break
 
+        if epoch in parameters.checkpoints:
+            torch.save(generator.state_dict(), os.path.join(parameters.output_path,
+                                                            'sinkhorn_gan_generator_cp' + str(epoch) + 'epochs.pth'))
+
     # load the last checkpoint with the best model
     generator.load_state_dict(torch.load('checkpoint.pt'))
 
@@ -125,66 +129,3 @@ def train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, param
         torch.save(critic.state_dict(), os.path.join(parameters.output_path, 'ot_gan_critic.pth'))
 
     return generator, critic, losses
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    # General parameters
-    parser.add_argument("--seed", type=int, default=0, help="seed")
-    parser.add_argument("--display", type=bool, default=True, help="true to display training results")
-    parser.add_argument("--output_path", type=str, default='saved_models', help="path where the trained models"
-                                                                                       "will be saved")
-    parser.add_argument("--dataset", type=str, default='gaussian', help="dataset to use (mnist or gaussian)")
-
-    # Network parameters
-
-    # Model parameters
-    parser.add_argument("--entropy_regularization", type=float, default=1, help="entropy regularization parameter")
-    parser.add_argument("--sinkhorn_iterations", type=int, default=10, help="number of Sinkhorn iterations")
-    parser.add_argument("--latent_dim", type=int, default=2, help="dimension of the latent space")
-
-    # Training parameters
-    parser.add_argument("--n_epochs", type=int, default=30, help="number of training epochs")
-    parser.add_argument("--batch_size", type=int, default=200, help="batch size")
-    parser.add_argument("--learning_rate", type=float, default=1e-4, help="learning rate")
-    parser.add_argument("--beta_1", type=float, default=0.5, help="1st beta coefficient for Adam optimizer")
-    parser.add_argument("--beta_2", type=float, default=0.999, help="2nd beta coefficient for Adam optimizer")
-    parser.add_argument("--generator_steps", type=float, default=3, help="number of generator optimization steps")
-
-    # Build parser
-    params = parser.parse_args()
-
-    # Create data loader. Batch size is multiplied by 2 to simulate the sampling of 2 independent batches by splitting
-    # one batch at each step.
-    data_loader = None
-    if params.dataset == 'mnist':
-        mnist = torchvision.datasets.MNIST(os.path.join(os.path.dirname(os.getcwd()), 'data'), train=True,
-                                        transform=mnist_transforms)
-        data_loader = DataLoader(mnist, batch_size=2*params.batch_size, shuffle=True)
-    elif params.dataset == 'gaussian':
-        gaussian_toy = GaussianToy()
-        toy_dataset = gaussian_toy.build()
-        data_loader = DataLoader(toy_dataset, batch_size=2*params.batch_size, shuffle=True)
-
-    # Instantiate model and optimizer
-    generator, critic = None, None
-    if params.dataset == 'mnist':
-        generator = ConvGenerator(params.latent_dim)
-        critic = ConvCritic()
-    elif params.dataset == 'gaussian':
-        generator = Generator(input_dim=params.latent_dim, hidden_dim=256, output_dim=2)
-        critic = Critic(input_dim=2, hidden_dim=256, output_dim=1)
-    #generator.load_state_dict(torch.load('./saved_models/ot_gan_generator_15_epochs.pth'))
-    #critic.load_state_dict(torch.load('./saved_models/ot_gan_critic_15_epochs.pth'))
-    optimizer_g = torch.optim.Adam(generator.parameters(), lr=params.learning_rate,
-                                   betas=(params.beta_1, params.beta_2))
-    optimizer_c = torch.optim.Adam(critic.parameters(), lr=params.learning_rate,
-                                   betas=(params.beta_1, params.beta_2))
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Train model
-    training_results = train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, params, device)
-
-    end = True
