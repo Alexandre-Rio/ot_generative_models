@@ -44,7 +44,7 @@ parser.add_argument("--sinkhorn_iterations", type=int, default=10, help="number 
 parser.add_argument("--latent_dim", type=int, default=2, help="dimension of the latent space")
 parser.add_argument("--latent_space", type=str, default='uniform', help="type of latent space (uniform or gaussian)")
 parser.add_argument("--data_dim", type=int, help="dimension of the data (flattened)")
-parser.add_argument("--distance", type=str, default='cosine', help="distance to use for the critic "
+parser.add_argument("--distance", type=str, default='default', help="distance to use for the critic "
                                                                     "(default, cosine or euclidean)")
 
 # Training parameters
