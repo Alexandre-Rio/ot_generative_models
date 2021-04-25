@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
+import matplotlib.pyplot as plt
 
 cd = np.sqrt(2) / 2
 
@@ -36,3 +37,14 @@ class GaussianToy:
 
         return self.dataset
 
+    def plot(self):
+
+        points = []
+
+        for i in range(len(self.dataset)):
+            points.append(self.dataset[i][0].tolist())
+
+        points = np.array(points)
+        plt.title("2D Gaussian Mixture dataset")
+        plt.scatter(points[:, 0], points[:, 1])
+        plt.show()
