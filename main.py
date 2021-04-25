@@ -9,6 +9,8 @@ import torch
 from torch.utils.data import DataLoader
 import torchvision
 import argparse
+import numpy as np
+import matplotlib.pyplot as plt
 
 from data_preprocessing import mnist_transforms
 
@@ -146,5 +148,13 @@ if __name__ == '__main__':
 
     # Create and train model
     training_results = main(params, device)
+
+    # Plot loss
+    loss = training_results[2]
+    plt.title("Training loss")
+    plt.plot(np.arange(params.n_epochs), np.array(loss))
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.show()
 
     end = True
