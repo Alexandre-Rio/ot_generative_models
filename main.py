@@ -16,7 +16,7 @@ from architectures import *
 from models.sinkhorn_gan import *
 from models.ot_gan import *
 from simulated_data import GaussianToy
-from utils import plot_save_grid
+from utils import generate_plot_grid
 
 parser = argparse.ArgumentParser()
 
