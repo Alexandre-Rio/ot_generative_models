@@ -56,7 +56,8 @@ def generate_plot_grid(generator, model='sinkhorn_gan', latent_dim=2, latent_spa
     # Process output
     output = output.detach()
     output = output.view(-1, 1, img_size, img_size)
-    output = output.numpy().transpose((0, 2, 3, 1))
+    if output.shape[1] == 1:
+        output = output.squeeze(dim=1)
     output = np.clip(output, 0, 1)
     # Plot figures
     fig = plt.figure(figsize=(size, size))
