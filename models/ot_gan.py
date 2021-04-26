@@ -116,8 +116,9 @@ def train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, param
             print("Early stopping")
             break
 
-        if epoch in parameters.checkpoints:
-            torch.save(generator.state_dict(), os.path.join(parameters.output_path,
+        if parameters.checkpoints is not None:
+            if epoch in parameters.checkpoints:
+                torch.save(generator.state_dict(), os.path.join(parameters.output_path,
                                                             'sinkhorn_gan_generator_cp' + str(epoch) + 'epochs.pth'))
 
     # load the last checkpoint with the best model
