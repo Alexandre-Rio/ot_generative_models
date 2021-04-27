@@ -33,7 +33,7 @@ class Generator(nn.Module):
             self.activation1 = nn.LeakyReLU()
             self.activation2 = nn.Tanh()
 
-        if self.mode == 'gaussian':
+        elif self.mode == 'gaussian':
             # Define linear layers
             self.fc1 = nn.Linear(input_dim, hidden_dim)
             self.fc2 = nn.Linear(hidden_dim, hidden_dim)
