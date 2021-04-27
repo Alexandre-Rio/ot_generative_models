@@ -15,24 +15,48 @@ class Generator(nn.Module):
     """
     A simple MLP architecture with one hidden layer.
     """
-    def __init__(self, input_dim, hidden_dim=500, output_dim=1024):
+    def __init__(self, input_dim, hidden_dim=500, output_dim=1024, mode='mnist'):
         super(Generator, self).__init__()
 
-        # Define linear layers
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        self.mode = mode
 
-        # Initialize linear layers with Xavier method
-        nn.init.xavier_normal_(self.fc1.weight)
-        nn.init.xavier_normal_(self.fc2.weight)
+        if self.mode == 'mnist':
+            # Define linear layers
+            self.fc1 = nn.Linear(input_dim, hidden_dim)
+            self.fc2 = nn.Linear(hidden_dim, output_dim)
 
-        # Define activations
-        self.activation1 = nn.LeakyReLU()
-        self.activation2 = nn.Tanh()
+            # Initialize linear layers with Xavier method
+            nn.init.xavier_normal_(self.fc1.weight)
+            nn.init.xavier_normal_(self.fc2.weight)
+
+            # Define activations
+            self.activation1 = nn.LeakyReLU()
+            self.activation2 = nn.Tanh()
+
+        if self.mode == 'gaussian':
+            # Define linear layers
+            self.fc1 = nn.Linear(input_dim, hidden_dim)
+            self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+            self.fc3 = nn.Linear(hidden_dim, output_dim)
+
+            # Initialize linear layers with Xavier method
+            nn.init.xavier_normal_(self.fc1.weight)
+            nn.init.xavier_normal_(self.fc2.weight)
+            nn.init.xavier_normal_(self.fc3.weight)
+
+            # Define activations
+            self.activation1 = nn.LeakyReLU()
 
     def forward(self, z):
-        x = self.activation1(self.fc1(z))
-        x = self.activation2(self.fc2(x))
+        if self.mode == 'mnist':
+            x = self.activation1(self.fc1(z))
+            x = self.activation2(self.fc2(x))
+
+        elif self.mode == 'gaussian':
+            x = self.activation1(self.fc1(z))
+            x = self.activation1(self.fc2(x))
+            x = self.fc3(x)
+
         return x
 
 
@@ -40,9 +64,10 @@ class Critic(nn.Module):
     """
     A simple MLP architecture with one hidden layer.
     """
-    def __init__(self, input_dim=1024, hidden_dim=500, output_dim=256):
+    def __init__(self, input_dim=1024, hidden_dim=500, output_dim=256, mode='mnist'):
         super(Critic, self).__init__()
 
+        self.mode = mode
         self.input_dim = input_dim
 
         # Define linear layers
@@ -58,6 +83,8 @@ class Critic(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, self.input_dim)  # Flatten x
+        if self.mode == 'gaussian':
+            x = x / 4
         x = self.activation(self.fc1(x))
         x = self.fc2(x)
         return x
@@ -87,7 +114,7 @@ class ConvGenerator(nn.Module):
         self.conv1 = nn.Conv2d(self.dim2, self.dim2, kernel_size=self.kernel_size, stride=1, padding=1)
         self.conv2 = nn.Conv2d(self.dim3, self.dim3, kernel_size=self.kernel_size, stride=1, padding=1)
         self.conv3 = nn.Conv2d(self.dim4, self.dim4, kernel_size=self.kernel_size, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(self.dim5, output_channels, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(self.dim5, output_channels, kernel_size=self.kernel_size, stride=1, padding=1)
 
         self.activation1 = nn.GLU(dim=1)
         self.activation2 = nn.Tanh()

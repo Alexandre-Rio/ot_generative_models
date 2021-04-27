@@ -110,9 +110,11 @@ def main(params, device):
         if params.use_critic:
             critic = ConvCritic(mode=params.dataset)
     elif params.architecture == 'simple':
-        generator = Generator(input_dim=params.latent_dim, hidden_dim=params.hidden_dim, output_dim=params.data_dim)
+        generator = Generator(input_dim=params.latent_dim, hidden_dim=params.hidden_dim, output_dim=params.data_dim,
+                              mode=params.dataset)
         if params.use_critic:
-            critic = Critic(input_dim=params.data_dim, hidden_dim=params.hidden_dim, output_dim=params.critic_out_dim)
+            critic = Critic(input_dim=params.data_dim, hidden_dim=params.hidden_dim, output_dim=params.critic_out_dim,
+                            mode=params.dataset)
 
     # Load model if stated
     if params.trained_generator != '':
