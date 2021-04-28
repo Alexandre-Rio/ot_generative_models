@@ -110,7 +110,7 @@ class Critic(nn.Module):
             x = self.fc2(x)
 
         elif self.mode == 'gaussian':
-            #x = x / 4
+            x = x / 4
             x = self.activation(self.fc1(x))
             x = self.activation(self.fc2(x))
             x = self.fc3(x)
