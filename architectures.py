@@ -37,15 +37,17 @@ class Generator(nn.Module):
             # Define linear layers
             self.fc1 = nn.Linear(input_dim, hidden_dim)
             self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-            self.fc3 = nn.Linear(hidden_dim, output_dim)
+            self.fc3 = nn.Linear(hidden_dim, hidden_dim)
+            self.fc4 = nn.Linear(hidden_dim, output_dim)
 
             # Initialize linear layers with Xavier method
             nn.init.xavier_normal_(self.fc1.weight)
             nn.init.xavier_normal_(self.fc2.weight)
             nn.init.xavier_normal_(self.fc3.weight)
+            nn.init.xavier_normal_(self.fc4.weight)
 
             # Define activations
-            self.activation1 = nn.LeakyReLU()
+            self.activation1 = nn.ReLU()
 
     def forward(self, z):
         if self.mode == 'mnist':
@@ -55,7 +57,8 @@ class Generator(nn.Module):
         elif self.mode == 'gaussian':
             x = self.activation1(self.fc1(z))
             x = self.activation1(self.fc2(x))
-            x = self.fc3(x)
+            x = self.activation1(self.fc3(x))
+            x = self.fc4(x)
 
         return x
 
@@ -70,23 +73,48 @@ class Critic(nn.Module):
         self.mode = mode
         self.input_dim = input_dim
 
-        # Define linear layers
-        self.fc1 = nn.Linear(self.input_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        if self.mode == 'mnist':
 
-        # Initialize linear layers with Xavier method
-        nn.init.xavier_normal_(self.fc1.weight)
-        nn.init.xavier_normal_(self.fc2.weight)
+            # Define linear layers
+            self.fc1 = nn.Linear(self.input_dim, hidden_dim)
+            self.fc2 = nn.Linear(hidden_dim, output_dim)
 
-        # Define activations
-        self.activation = nn.LeakyReLU()
+            # Initialize linear layers with Xavier method
+            nn.init.xavier_normal_(self.fc1.weight)
+            nn.init.xavier_normal_(self.fc2.weight)
+
+            # Define activations
+            self.activation = nn.LeakyReLU()
+
+        if self.mode == 'gaussian':
+            hidden_dim = 32
+
+            # Define linear layers
+            self.fc1 = nn.Linear(self.input_dim, hidden_dim)
+            self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+            self.fc3 = nn.Linear(hidden_dim, output_dim)
+
+            # Initialize linear layers with Xavier method
+            nn.init.xavier_normal_(self.fc1.weight)
+            nn.init.xavier_normal_(self.fc2.weight)
+            nn.init.xavier_normal_(self.fc3.weight)
+
+            # Define activations
+            self.activation = nn.ReLU()
 
     def forward(self, x):
         x = x.view(-1, self.input_dim)  # Flatten x
-        if self.mode == 'gaussian':
-            x = x / 4
-        x = self.activation(self.fc1(x))
-        x = self.fc2(x)
+
+        if self.mode == 'mnist':
+            x = self.activation(self.fc1(x))
+            x = self.fc2(x)
+
+        elif self.mode == 'gaussian':
+            #x = x / 4
+            x = self.activation(self.fc1(x))
+            x = self.activation(self.fc2(x))
+            x = self.fc3(x)
+
         return x
 
 

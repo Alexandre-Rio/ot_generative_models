@@ -4,7 +4,6 @@ Created on Mon Apr 19 14:41:00 2021
 @author: alexandre-rio
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
@@ -15,7 +14,7 @@ cd = np.sqrt(2) / 2
 
 class GaussianToy:
 
-    def __init__(self, samples_per_mode=25000):
+    def __init__(self, samples_per_mode=5000):
 
         self.samples_per_mode = samples_per_mode
         self.centers = 2 * np.array([[0, 1], [1, 0], [-1, 0], [0, -1], [cd, cd], [-cd, -cd], [-cd, cd], [cd, -cd]])

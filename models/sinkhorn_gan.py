@@ -6,19 +6,11 @@ Created on Mon Apr 19 14:41:00 2021
 
 __all__ = ['sinkhorn_loss', 'train_sinkhorn_gan']
 
-import argparse
 import os
-import matplotlib.pyplot as plt
-
 import torch.nn as nn
 import torch
-import torchvision
 
-from torch.utils.data import DataLoader
 from early_stopping_pytorch.pytorchtools import EarlyStopping
-
-from architectures import *
-from data_preprocessing import mnist_transforms
 from utils import *
 
 
@@ -44,7 +36,9 @@ def sinkhorn_loss(fake, real, parameters, device, critic):
 
 
 def train_sinkhorn_gan(data_loader, generator, critic, optimizer_g, optimizer_c, parameters, device):
-
+    """
+    Training procedure for Sinkhorn AutoDiff. Return train models and losses.
+    """
     losses = []
 
     # Initialize Early Stopping callback

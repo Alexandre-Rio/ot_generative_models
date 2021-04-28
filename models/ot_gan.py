@@ -6,21 +6,11 @@ Created on Mon Apr 19 14:41:00 2021
 
 __all__ = ['minibatch_energy_distance', 'train_ot_gan']
 
-import argparse
 import os
-import matplotlib.pyplot as plt
-
-import torch.nn as nn
 import torch
-import torchvision
 
-from torch.utils.data import DataLoader
 from early_stopping_pytorch.pytorchtools import EarlyStopping
-
-from architectures import *
-from data_preprocessing import mnist_transforms
 from utils import *
-from simulated_data import GaussianToy
 
 
 def minibatch_energy_distance(x, x_prime, y, y_prime, parameters, device, critic):
@@ -48,7 +38,9 @@ def minibatch_energy_distance(x, x_prime, y, y_prime, parameters, device, critic
 
 
 def train_ot_gan(data_loader, generator, critic, optimizer_g, optimizer_c, parameters, device):
-
+    """
+    Training procedure for OT GAN. Return train models and losses.
+    """
     losses = []
 
     # Initialize Early Stopping callback

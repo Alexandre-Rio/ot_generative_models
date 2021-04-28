@@ -4,7 +4,6 @@ Created on Mon Apr 19 14:41:00 2021
 @author: alexandre-rio
 """
 
-import os
 import torch
 from torch.utils.data import DataLoader
 import torchvision
@@ -18,14 +17,13 @@ from architectures import *
 from models.sinkhorn_gan import *
 from models.ot_gan import *
 from simulated_data import GaussianToy
-from utils import generate_plot_grid
 
 parser = argparse.ArgumentParser()
 
 # General parameters
-parser.add_argument("--model", type=str, default="sinkhorn_gan", help="model to use (sinkhorn gan or ot_gan)")
-parser.add_argument("--architecture", type=str, default="simple", help="architecture to use (simple or conv)")
-parser.add_argument("--use_critic", type=bool, default=False, help="True if a learnable critic is used")
+parser.add_argument("--model", type=str, default="ot_gan", help="model to use (sinkhorn gan or ot_gan)")
+parser.add_argument("--architecture", type=str, default="conv", help="architecture to use (simple or conv)")
+parser.add_argument("--use_critic", type=bool, default=True, help="True if a learnable critic is used")
 parser.add_argument("--trained_generator", type=str, default='', help="path to trained generator")
 parser.add_argument("--trained_critic", type=str, default='', help="path to trained critic")
 parser.add_argument("--seed", type=int, default=0, help="seed")
@@ -38,12 +36,12 @@ parser.add_argument("--checkpoints", type=int, nargs='*', help="epochs at which 
 
 # Network parameters
 parser.add_argument("--hidden_dim", type=int, default=500, help="number of nodes in the MLPs hidden layer")
-parser.add_argument("--critic_out_dim", type=int, default=1, help="dimension of the MLP critic out features")
+parser.add_argument("--critic_out_dim", type=int, default=2, help="dimension of the MLP critic out features")
 
 # Model parameters
 parser.add_argument("--entropy_regularization", type=float, default=1, help="entropy regularization parameter")
 parser.add_argument("--sinkhorn_iterations", type=int, default=10, help="number of Sinkhorn iterations")
-parser.add_argument("--latent_dim", type=int, default=2, help="dimension of the latent space")
+parser.add_argument("--latent_dim", type=int, default=50, help="dimension of the latent space")
 parser.add_argument("--latent_space", type=str, default='uniform', help="type of latent space (uniform or gaussian)")
 parser.add_argument("--data_dim", type=int, help="dimension of the data (flattened)")
 parser.add_argument("--distance", type=str, default='default', help="distance to use for the critic "
@@ -69,9 +67,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def main(params, device):
     """
     Create and train an OT-based model from given parameters, and returns the trained model and losses.
-    :param params: parameters (array)
-    :param device:
-    :return:
     """
     # Print information
     print('__________________\nMODEL PARAMETERS\n__________________')

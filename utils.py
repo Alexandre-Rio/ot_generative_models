@@ -122,7 +122,7 @@ def sinkhorn_divergence(x, y, distance, parameters, device, critic=None, flat_si
     """
     if critic is not None:
         x, y = critic(x), critic(y)
-    else:
+    elif parameters.dataset == 'mnist':
         x, y = x.view(-1, flat_size), y.view(-1, flat_size)
 
     # Compute pairwise transport cost matrix
