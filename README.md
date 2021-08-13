@@ -1,5 +1,5 @@
 # ot_generative_models
-Implementation of generative models using optimal transport.
+Implementation of generative models using optimal transport, for the spring 2021 class of "Optimal Transport: theory, computations, statistics and ML applications". Final grade: 20/20.
 
 **Sinkhorn AutoDiff:**
 *"Learning Generative Models with Sinkhorn Divergences"* by Aude Genevay, Gabriel Peyré, Marco Cuturi (Link: https://arxiv.org/abs/1706.00292)
